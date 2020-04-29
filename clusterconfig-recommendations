@@ -1,0 +1,17 @@
+I just had a look at the redshift cluster configuration and I could see the CPU utilization sometimes touches 90% and based on our discussion yesterday, you did mention that userbase and the data volume will grow eventually in near future. This means you might want to have a self-managed compute as well as storage solution.  I would recommend to go for RA3 node for the cluster. This is a self-managed compute and storage solution that was introduced in December of last year. 
+
+A typical ra3.16x large node will have below properties.
+
+1.	VPCU – 48
+2.	RAM – 384 GB
+3.	Slices/node – 16
+4.	Storage/node – 64TB
+5.	Node Range – (2-128)
+
+Also good thing is they use high performance SSD compared to HDD in case of ds machines.
+
+From migration standpoint also existing clusters can easily be moved to ra based cluster using the snapshots. I will continue to analyze more on this and would let you know if I find any other improvement opportunities. 
+
+Here is the link : https://aws.amazon.com/about-aws/whats-new/2019/12/amazon-redshift-announces-ra3-nodes-managed-storage/
+
+Please let me know your  thoughts on this.
