@@ -1,0 +1,86 @@
+--To find the existing dist key, sort key and the encoding
+set search_path to <schema_name>;
+select "column", type, encoding, distkey, sortkey, "notnull" 
+from pg_table_def
+where tablename = '<table_name>'
+and sortkey <> 0;
+
+
+--To find the user that have access to the table
+
+SELECT
+*
+
+FROM
+    pg_user u
+CROSS JOIN
+    pg_tables t
+WHERE
+    u.usename = '<user_name>'
+    AND 
+    t.tablename in ( '<table_name>') AND t.schemaname='<schema_name>';
+    
+ -- To create a table with distkey and sort keys
+ 
+ CREATE TABLE <schema_name>.<table_name>
+(
+   day_date                 date         NOT NULL,
+   fiscal_year              varchar(4)   NOT NULL,
+   fiscal_month             smallint     NOT NULL,
+   fiscal_month_name_short  varchar(3)   NOT NULL,
+   fiscal_month_name_long   varchar(9)   NOT NULL,
+   fiscal_week              smallint     NOT NULL,
+   fiscal_quarter           varchar(2)   NOT NULL,
+   workday                  boolean,
+   fiscal_year_long         smallint,
+   weekend_flg              boolean
+) diststyle key distkey(day_date)
+  sortkey(day_date, fiscal_year, fiscal_month, fiscal_week, fiscal_year_long);
+
+ 
+ -- To create views sample query
+ 
+ CREATE OR REPLACE VIEW <schema_name>.<view_name> AS
+
+  SELECT trunc(dateadd(day,2,f.day_date)) AS day_date
+    , f.fiscal_year
+    , f.fiscal_month
+    , f.fiscal_month_name_short
+    , f.fiscal_month_name_long
+    , f.fiscal_week
+    , f.fiscal_quarter
+    , w.workday
+    , f.fiscal_year_long
+  FROM <schema_name>.<table_name> f
+  INNER JOIN <schema_name>.<table_name> w ON w.day_date = trunc(dateadd(day,2,f.day_date))
+
+WITH no schema binding;
+
+--Analyse the table
+analyze <schema_name>.<table_name>
+
+--Analyze compression
+analyze compression <schema_name>.<table_name>
+
+--Copy data from S3
+  --Using IAM Role
+copy customer 
+from 's3://mybucket/mydata' 
+iam_role 'arn:aws:iam::0123456789012:role/MyRedshiftRole';
+
+  --Using Access key and secret access key
+copy customer 
+from 's3://mybucket/mydata' 
+access_key_id '<access-key-id>'
+secret_access_key '<secret-access-key';
+
+--Using file delimiter
+copy venue from 's3://mybucket/venue'
+iam_role 'arn:aws:iam::0123456789012:role/MyRedshiftRole'
+delimiter '|';
+
+--Using manifest file
+copy <table_name> from 's3://<bucket_name>/<manifest_file>'
+authorization
+manifest;
+
