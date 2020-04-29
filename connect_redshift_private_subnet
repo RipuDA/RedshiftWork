@@ -1,0 +1,27 @@
+--Connecting to redshift on private subnet from the jumpbox
+
+1.	Create a customer managed KMS key to encrypt S3 bucket to be used to place the snapshots
+2.	Take the cluster snapshot/backup manually and push it to S3 bucket through KMS encryption. Make sure all public access is turned off
+3.	Create cross account IAM roles and copy the snap shot from one account to another account s3 buckets. Make sure to exchange the KMS keys so that decryption and encryption can happen in source and target
+4.	Also the bastion host/jump box needs to be on an auto-scaling group so take care of any sizing issue. Definitely the jump box will be on the public subnet
+
+5.	Update the Security group to open the port range for Redshift access from the jumpbox
+6.	Log into to jump box terminal/cli
+7.	Make sure to configure the bastion host or jump box to be able to access the snap shot s3 bucket
+8.	Use the CLI commands to create the redshift cluster using the snap shots from step 7
+9.	Create a tunnel from the jump box to private subnet where the redshift cluster will run
+•	 Install SQL Workbench/J on your local machine.
+•	Download the latest Amazon Redshift JDBC driver.
+•	In SQL Workbench/J, create a connection profile using the JDBC driver that you downloaded in step 2.
+•	To configure the SSH connection in SQL Workbench/J, choose SSH, and then enter the following:
+SSH hostname: the public IP address or DNS of the EC2 instance
+SSH port: 22
+Username: ec2-user
+Private key file: the .pem file that you downloaded when you created the EC2 instance
+Password: leave this field empty
+Local port: any free local port. For simplicity, you can use the same port that the cluster is using (5439 by default).
+DB hostname: the cluster endpoint. Don't include the port number or database name.
+DB port: 5439
+Rewrite JDBC URL: check this box
+•	Choose OK to save the SSH settings.
+•	Be sure that the JDBC URL and the master user name and password are entered correctly
